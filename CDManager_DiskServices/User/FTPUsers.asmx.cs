@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Web;
 using System.Web.Services;
 
@@ -20,6 +21,21 @@ namespace CDManager_DiskServices.User
     public class FTPUsers : System.Web.Services.WebService
     {
         Serv_UControl sc = Serv_UControl.getServUContorl();
+        [WebMethod]//检查FTP状态
+        public bool GetFTPStatus()
+        {
+            try
+            {
+                FtpWebRequest request = (FtpWebRequest)WebRequest.Create("ftp://" + XMLHelper.getAppSettingValue("FTP_IP"));
+                request.Credentials = new NetworkCredential("reader", "reader");
+                request.Method = WebRequestMethods.Ftp.ListDirectory;
+                FtpWebResponse response = (FtpWebResponse)request.GetResponse();
+                response.Close();
+                return true;
+            }
+            catch { return false; }
+        }
+
         [WebMethod]//检查FTP用户账号
         public bool Admin(string glytm, string mm)
         {
@@ -50,7 +66,7 @@ namespace CDManager_DiskServices.User
             bool result = false;
             try
             {
-                string max = sc.GetFtpMaxUsersCount("reader");              
+                string max = sc.GetFtpMaxUsersCount("reader");
                 if (new_max != max)
                 {
                     if (sc.SetFtpMaxUsersCount("reader", new_max)) { result = true; }
@@ -61,7 +77,7 @@ namespace CDManager_DiskServices.User
         }
 
         [WebMethod]//更改FTP用户密码
-        public bool UpdatePasswd(string glytm,string mm)
+        public bool UpdatePasswd(string glytm, string mm)
         {
             return sc.ChangePassword(glytm, mm);
         }

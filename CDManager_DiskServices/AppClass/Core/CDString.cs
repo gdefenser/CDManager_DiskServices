@@ -21,7 +21,9 @@ namespace CDManager_DiskServices.AppClass.Core
                 Replace("\"", "").
                 Replace("<", "").
                 Replace(">", "").
-                Replace("|", "");
+                Replace("|", "").
+                Replace("C#", "CSharp").
+                Replace("：","");
         }
 
         public static string getItemValue(string str)

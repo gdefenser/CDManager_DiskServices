@@ -295,6 +295,7 @@ namespace CDManager_DiskServices.AppClass.FTP.Serv_uAdvCon
             }
             return null;
         }
+
         public string MoveFile(string username, string ISBN, string ZTM, string CDXH)
         {
             try
@@ -314,20 +315,20 @@ namespace CDManager_DiskServices.AppClass.FTP.Serv_uAdvCon
                     }
                     if (dir.Root.Name.Equals(file.Directory.Root.Name))
                     {
-                        file.MoveTo(path + "\\" + CDString.getFileName(file.Name.Replace(ISBN.Replace(" ", "_") + "_" + CDXH.Replace(" ", "_"), "")));
-                        return CDString.getFileName(file.Name);
+                        file.MoveTo(path + "\\" + CDString.getFileName(file.Name.Replace(ISBN.Replace(" ", "_") + "_" + CDXH.Replace(" ", "_"), "")).Replace("_",""));
+                        return "file_ok";
                     }
                     else
                     {
-                        file.CopyTo(path + "\\" + CDString.getFileName(file.Name.Replace(ISBN.Replace(" ", "_") + "_" + CDXH.Replace(" ", "_"), "")));
+                        file.CopyTo(path + "\\" + CDString.getFileName(file.Name.Replace(ISBN.Replace(" ", "_") + "_" + CDXH.Replace(" ", "_"), "")).Replace("_", ""));
                         file.Delete();
-                        return CDString.getFileName(file.Name);
+                        return "file_ok";
                     }
                 }
                 else
-                { return null; }
+                { return "file_null"; }
             }
-            catch { return null; }
+            catch { return "file_error"; }
         }
 
 

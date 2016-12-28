@@ -62,16 +62,14 @@ namespace CDManager_DiskServices.CD
         }
 
         [WebMethod]//上传确认
-        public bool UploadConfirm(string glytm, string isbn, string ztm, string cdxh)
+        public string UploadConfirm(string glytm, string isbn, string ztm, string cdxh)
         {
             try
             {
                 Serv_UControl sc = Serv_UControl.getServUContorl();
-                string moved = sc.MoveFile(glytm, isbn, ztm, cdxh);
-                if (moved != null) { return true; }
-                else { return false; }
+                return sc.MoveFile(glytm, isbn, ztm, cdxh);
             }
-            catch { return false; }
+            catch { return "确认错误!"; }
         }
 
         [WebMethod]//更改文件名
@@ -110,13 +108,64 @@ namespace CDManager_DiskServices.CD
                 string path = XMLHelper.getAppSettingValue("FTP_Home") + "\\Download\\" + CDString.getFileName(isbn + ztm) + "\\" + CDString.getFileName(cdxh);
                 DirectoryInfo dir = new DirectoryInfo(path);
 
-                if (dir.Exists) 
+                if (dir.Exists)
                 {
-                    return dir.GetFiles().First().Name; 
+                    return dir.GetFiles().First().Name;
                 }
                 else { return null; }
             }
             catch { return null; }
+        }
+
+        [WebMethod]//获取文件未确认列表
+        public List<string> GetUploadedFiles(string glytm)
+        {
+            string path = XMLHelper.getAppSettingValue("FTP_Home") + "\\" + glytm;
+            DirectoryInfo dir = new DirectoryInfo(path);
+            List<string> listResult = new List<string>();
+
+            foreach (FileInfo fi in dir.GetFiles().ToList())
+            {
+                string extension = fi.Extension;
+                if (extension != ".txt" && extension != ".ini")
+                {
+                    string item = fi.Name.Split('.')[0] + "," + extension;
+                    double length = fi.Length / 1024.0 / 1024.0;
+                    if (length >= 1024) { item += "," + (length / 1024).ToString("0.00") + "Gb"; }
+                    else { item += "," + length.ToString("0.00") + "Mb"; }
+                    item += "," + fi.LastAccessTime;
+                    listResult.Add(item);
+                }
+            }
+            return listResult;
+        }
+
+        [WebMethod]//移除未确认文件
+        public bool RemoveUploadedFile(string glytm, string name)
+        {
+            try
+            {
+                Serv_UControl sc = Serv_UControl.getServUContorl();
+                string path = sc.GetFtpUserHomeDir(glytm).Replace("\r", "");//获取管理员目录
+                FileInfo file = new DirectoryInfo(path).GetFiles().First(f => f.Name == name);
+                file.Delete();
+                return true;
+            }
+            catch { return false; }
+        }
+
+        [WebMethod]//更改未确认文件
+        public bool UpdateUploadedFile(string glytm, string name, string newName, string ext)
+        {
+            try
+            {
+                Serv_UControl sc = Serv_UControl.getServUContorl();
+                string path = sc.GetFtpUserHomeDir(glytm).Replace("\r", "");//获取管理员目录
+                FileInfo file = new DirectoryInfo(path).GetFiles().ToList().First(f => f.Name == name + ext);
+                file.MoveTo(path + "\\" + newName + ext);
+                return true;
+            }
+            catch { return false; }
         }
     }
 }
